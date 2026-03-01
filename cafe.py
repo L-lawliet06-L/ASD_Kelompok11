@@ -5,6 +5,45 @@
 
 menu = {}
 
+
+class Node:
+    def __init__(self, value):
+        self.value = value
+        self.next = None
+
+
+class Queue:
+    def __init__(self):
+        self.head = None
+        self.tail = None
+
+    def is_empty(self):
+        return self.head is None
+
+    def enqueue(self, value):
+        node = Node(value)
+        if self.tail:
+            self.tail.next = node
+        else:
+            self.head = node
+        self.tail = node
+
+    def dequeue(self):
+        if self.is_empty():
+            return None
+        value = self.head.value
+        self.head = self.head.next
+        if self.head is None:
+            self.tail = None
+        return value
+
+
+def format_rp(amount):
+    try:
+        return f"{int(amount):,}".replace(",", ".")
+    except Exception:
+        return str(amount)
+
 def tampilkan_menu():
     if not menu:
         print("\nMenu masih kosong.")
@@ -12,7 +51,7 @@ def tampilkan_menu():
     print("\n=== DAFTAR MENU CAFE ===")
     print("-----------------------")
     for nama, harga in menu.items():
-        print(f"{nama:<15} : Rp{harga}")
+        print(f"{nama:<15} : Rp {format_rp(harga)}")
     print("-----------------------")
 
 def tambah_menu():
@@ -27,6 +66,11 @@ def tambah_menu():
     print("✅ Menu berhasil ditambahkan")
 
 def update_menu():
+    if not menu:
+        print("❌ Menu masih kosong")
+        return
+
+    tampilkan_menu()
     nama = input("Nama menu yang diupdate: ").title()
     if nama not in menu:
         print("❌ Menu tidak ditemukan")
@@ -52,8 +96,7 @@ def transaksi():
     if not menu:
         print("❌ Menu kosong, tidak bisa transaksi")
         return
-
-    keranjang = {}
+    cart = Queue()
     total = 0
 
     while True:
@@ -71,16 +114,17 @@ def transaksi():
             continue
 
         qty = int(qty)
-        keranjang[nama] = keranjang.get(nama, 0) + qty
+        cart.enqueue((nama, qty))
 
     print("\n=== STRUK PEMBELIAN ===")
     print("----------------------")
-    for nama, qty in keranjang.items():
+    while not cart.is_empty():
+        nama, qty = cart.dequeue()
         subtotal = menu[nama] * qty
         total += subtotal
-        print(f"{nama:<15} x{qty:<3} = Rp{subtotal}")
+        print(f"{nama:<15} x{qty:<3} = Rp {format_rp(subtotal)}")
     print("----------------------")
-    print(f"TOTAL BAYAR        = Rp{total}")
+    print(f"TOTAL BAYAR        = Rp {format_rp(total)}")
     print("----------------------")
 
 def menu_utama():

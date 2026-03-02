@@ -3,7 +3,11 @@
 # MODE TERMINAL (PYTHON)
 # ==============================
 
+import json
+import os
+
 menu = {}
+MENU_FILE = "data.json"
 
 
 class Node:
@@ -44,6 +48,42 @@ def format_rp(amount):
     except Exception:
         return str(amount)
 
+
+def load_menu():
+    """Load menu dictionary from MENU_FILE if available."""
+    global menu
+    if os.path.exists(MENU_FILE):
+        try:
+            with open(MENU_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            # ensure values are ints
+            menu = {k: int(v) for k, v in data.items()}
+        except Exception:
+            print("⚠️ Gagal membaca file data.json, memulai dengan menu kosong.")
+            menu = {}
+    else:
+        menu = {}
+
+
+def save_menu():
+    """Write current menu dictionary to MENU_FILE."""
+    try:
+        with open(MENU_FILE, "w", encoding="utf-8") as f:
+            json.dump(menu, f, ensure_ascii=False, indent=2)
+    except Exception:
+        print("⚠️ Gagal menyimpan menu ke file.")
+
+
+def parse_price(raw):
+    """Convert a price string to integer rupiah value."""
+    if not raw:
+        return None
+    cleaned = raw.replace(".", "").replace(",", "").replace(" ", "")
+    if cleaned.isdigit():
+        return int(cleaned)
+    return None
+
+
 def tampilkan_menu():
     if not menu:
         print("\nMenu masih kosong.")
@@ -54,16 +94,20 @@ def tampilkan_menu():
         print(f"{nama:<15} : Rp {format_rp(harga)}")
     print("-----------------------")
 
+
 def tambah_menu():
     nama = input("Nama menu   : ").title()
     harga = input("Harga (Rp)  : ")
 
-    if not harga.isdigit():
-        print("❌ Harga harus berupa angka!")
+    parsed = parse_price(harga)
+    if parsed is None:
+        print("❌ Harga harus berupa angka (boleh gunakan titik atau koma sebagai pemisah ribuan)!")
         return
 
-    menu[nama] = int(harga)
+    menu[nama] = parsed
+    save_menu()
     print("✅ Menu berhasil ditambahkan")
+
 
 def update_menu():
     if not menu:
@@ -77,20 +121,25 @@ def update_menu():
         return
 
     harga = input("Harga baru (Rp): ")
-    if not harga.isdigit():
-        print("❌ Harga harus angka")
+    parsed = parse_price(harga)
+    if parsed is None:
+        print("❌ Harga harus angka (boleh gunakan titik atau koma sebagai pemisah ribuan)!")
         return
 
-    menu[nama] = int(harga)
+    menu[nama] = parsed
+    save_menu()
     print("✅ Harga berhasil diupdate")
+
 
 def hapus_menu():
     nama = input("Nama menu yang dihapus: ").title()
     if nama in menu:
         del menu[nama]
+        save_menu()
         print("✅ Menu berhasil dihapus")
     else:
         print("❌ Menu tidak ditemukan")
+
 
 def transaksi():
     if not menu:
@@ -127,6 +176,7 @@ def transaksi():
     print(f"TOTAL BAYAR        = Rp {format_rp(total)}")
     print("----------------------")
 
+
 def menu_utama():
     while True:
         print("""
@@ -156,7 +206,9 @@ def menu_utama():
         else:
             print("❌ Pilihan tidak valid")
 
+
 # ==============================
 # PROGRAM DIMULAI
 # ==============================
+load_menu()      # <-- INI YANG WAJIB supaya data.json terbaca saat start
 menu_utama()

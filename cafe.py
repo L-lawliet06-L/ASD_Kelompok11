@@ -90,8 +90,8 @@ def tampilkan_menu():
         return
     print("\n=== DAFTAR MENU CAFE ===")
     print("-----------------------")
-    for nama, harga in menu.items():
-        print(f"{nama:<15} : Rp {format_rp(harga)}")
+    for no, (nama, harga) in enumerate(menu.items(), 1):
+        print(f"{no}. {nama:<12} : Rp {format_rp(harga)}")
     print("-----------------------")
 
 
@@ -115,8 +115,21 @@ def update_menu():
         return
 
     tampilkan_menu()
-    nama = input("Nama menu yang diupdate: ").title()
-    if nama not in menu:
+    pilihan = input("Pilih nomor atau nama menu yang diupdate: ").title()
+    
+    # Cek apakah input adalah nomor
+    nama = None
+    if pilihan.isdigit():
+        no = int(pilihan)
+        menu_list = list(menu.items())
+        if 1 <= no <= len(menu_list):
+            nama = menu_list[no - 1][0]
+    else:
+        # Input adalah nama
+        if pilihan in menu:
+            nama = pilihan
+    
+    if nama is None:
         print("❌ Menu tidak ditemukan")
         return
 
@@ -132,13 +145,32 @@ def update_menu():
 
 
 def hapus_menu():
-    nama = input("Nama menu yang dihapus: ").title()
-    if nama in menu:
-        del menu[nama]
-        save_menu()
-        print("✅ Menu berhasil dihapus")
+    if not menu:
+        print("❌ Menu masih kosong")
+        return
+    
+    tampilkan_menu()
+    pilihan = input("Pilih nomor atau nama menu yang dihapus: ").title()
+    
+    # Cek apakah input adalah nomor
+    nama = None
+    if pilihan.isdigit():
+        no = int(pilihan)
+        menu_list = list(menu.items())
+        if 1 <= no <= len(menu_list):
+            nama = menu_list[no - 1][0]
     else:
+        # Input adalah nama
+        if pilihan in menu:
+            nama = pilihan
+    
+    if nama is None:
         print("❌ Menu tidak ditemukan")
+        return
+    
+    del menu[nama]
+    save_menu()
+    print("✅ Menu berhasil dihapus")
 
 
 def transaksi():
@@ -150,10 +182,24 @@ def transaksi():
 
     while True:
         tampilkan_menu()
-        nama = input("Pilih menu (x untuk selesai): ").title()
-        if nama.lower() == "x":
+        pilihan = input("Pilih nomor atau nama menu (x untuk selesai): ").title()
+        
+        if pilihan.lower() == "x":
             break
-        if nama not in menu:
+        
+        # Cek apakah input adalah nomor
+        nama = None
+        if pilihan.isdigit():
+            no = int(pilihan)
+            menu_list = list(menu.items())
+            if 1 <= no <= len(menu_list):
+                nama = menu_list[no - 1][0]
+        else:
+            # Input adalah nama
+            if pilihan in menu:
+                nama = pilihan
+        
+        if nama is None:
             print("❌ Menu tidak ada")
             continue
 
@@ -164,6 +210,7 @@ def transaksi():
 
         qty = int(qty)
         cart.enqueue((nama, qty))
+        print(f"✅ {qty} x {nama} ditambahkan ke keranjang")
 
     print("\n=== STRUK PEMBELIAN ===")
     print("----------------------")
